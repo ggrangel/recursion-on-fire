@@ -12,11 +12,11 @@
   "dependencies": {
     "@types/underscore": "^1.11.4",
     "eslint_d": "^11.1.1",
-    "typescript": "^4.6.3",
     "underscore": "^1.13.2",
     "wait-console-input": "^0.1.7"
   },
   "devDependencies": {
-    "@types/node": "^17.0.23"
+    "@types/node": "^17.0.23",
+    "typescript": "^4.6.3"
   }
 }
