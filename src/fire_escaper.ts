@@ -42,16 +42,11 @@ const directionsFunctionMap = {
 };
 
 export class FireEscaper {
-  drawer: MapDisplayer;
-  roomMap: RoomMap;
-  directions: DirectionOrder;
-
-  constructor(drawer: MapDisplayer, directions: DirectionOrder) {
-    this.drawer = drawer;
-    this.roomMap = drawer.roomMap;
-
-    this.directions = directions;
-  }
+  constructor(
+    private drawer: MapDisplayer,
+    private roomMap: RoomMap,
+    private directions: DirectionOrder
+  ) {}
 
   consoleInteraction(pos: Position, symbol: MapSymbols) {
     console.clear();

@@ -2,10 +2,10 @@ import { MapSymbols, RoomMap } from "./map_creator";
 import { Position } from "./position";
 
 export class MapDisplayer {
-  roomMap: RoomMap;
+  // roomMap: RoomMap;
 
-  constructor(roomMap: RoomMap) {
-    this.roomMap = roomMap;
+  constructor(private roomMap: RoomMap) {
+    // this.roomMap = roomMap;
   }
 
   markSpotAsVisited(row: number, col: number) {

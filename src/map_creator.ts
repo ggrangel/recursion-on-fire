@@ -1,6 +1,8 @@
 import * as _ from "underscore";
 import { isPositionInRoomLimits, Position } from "./position";
 
+export type MapSolvable = "solvable" | "impossible";
+
 export type RoomMap = MapSymbols[][];
 
 export enum MapSymbols {
@@ -115,9 +117,13 @@ export class MapCreator {
     }
   }
 
-  createMap() {
-    this.setValidPath();
-    this.setImpossiblePath();
+  createMap(isSolvable: MapSolvable) {
+    if (isSolvable === "solvable") {
+      this.setValidPath();
+    } else {
+      this.setImpossiblePath();
+    }
+
     this.setRandomWallAndFireAndEmpty();
   }
 }
