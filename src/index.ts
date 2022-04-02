@@ -1,6 +1,6 @@
 import { MapCreator } from "./map_creator";
-import { MapDrawer, MapSymbols } from "./map_drawer";
-import { FireEscaper, NextPosition, DirectionOrder } from "./fire_escaper";
+import { MapDrawer } from "./map_drawer";
+import { FireEscaper, DirectionOrder } from "./fire_escaper";
 
 function main() {
   let width: number = 6;
@@ -17,14 +17,11 @@ function main() {
   // non-efficient ordering
   let directionOrder: DirectionOrder = ["left", "up", "down", "right"];
   // efficient ordering
-  // let directionOrder: Direction[] = [Direction.Down, Direction.Right, Direction.Up, Direction.Right]
+  // let directionOrder: DirectionOrder = ["down", "right", "up", "left"];
 
   let escaper = new FireEscaper(entrance, drawer, directionOrder);
 
-  escaper.recursionSolver(
-    entrance,
-    new NextPosition(entrance.row, entrance.col, MapSymbols.Cursor)
-  );
+  escaper.escapeTheRoom(entrance);
 }
 
 main();

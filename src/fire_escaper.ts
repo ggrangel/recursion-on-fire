@@ -1,6 +1,6 @@
 const inputReader = require("wait-console-input");
 import { Position } from "./position";
-import { MapDrawer, MapSymbols } from "./map_drawer";
+import { MapDrawer, MapSymbols, RoomMap } from "./map_drawer";
 
 export class NextPosition extends Position {
   symbol: MapSymbols;
@@ -13,27 +13,27 @@ export class NextPosition extends Position {
 
 export type Direction = "left" | "right" | "up" | "down";
 
-export type NextPositionFunc = (row: number, col: number) => NextPosition;
+export type NextPositionFunc = (pos: Position) => NextPosition;
 
 export type DirectionOrder = [Direction, Direction, Direction, Direction];
 
-function nextPositionLeft(row: number, col: number) {
-  return new NextPosition(row, col - 1, MapSymbols.LeftArrow);
+function nextPositionLeft(pos: Position): NextPosition {
+  return new NextPosition(pos.row, pos.col - 1, MapSymbols.LeftArrow);
 }
 
-function nextPositionUp(row: number, col: number) {
-  return new NextPosition(row - 1, col, MapSymbols.UpArrow);
+function nextPositionUp(pos: Position): NextPosition {
+  return new NextPosition(pos.row - 1, pos.col, MapSymbols.UpArrow);
 }
 
-function nextPositionRight(row: number, col: number) {
-  return new NextPosition(row, col + 1, MapSymbols.RightArrow);
+function nextPositionDown(pos: Position): NextPosition {
+  return new NextPosition(pos.row + 1, pos.col, MapSymbols.DownArrow);
 }
 
-function nextPositionDown(row: number, col: number) {
-  return new NextPosition(row + 1, col, MapSymbols.DownArrow);
+function nextPositionRight(pos: Position): NextPosition {
+  return new NextPosition(pos.row, pos.col + 1, MapSymbols.RightArrow);
 }
 
-const directionsFunctionMap: { [key: string]: NextPositionFunc } = {
+const directionsFunctionMap = {
   left: nextPositionLeft,
   up: nextPositionUp,
   right: nextPositionRight,
@@ -43,10 +43,9 @@ const directionsFunctionMap: { [key: string]: NextPositionFunc } = {
 export class FireEscaper {
   entrance: Position;
   drawer: MapDrawer;
-  roomMap: MapSymbols[][];
-  maxRowIdx: number;
-  maxColIdx: number;
-  visited: boolean[][];
+  roomMap: RoomMap;
+  maxHeight: number;
+  maxWidth: number;
   directions: DirectionOrder;
 
   constructor(
@@ -58,31 +57,46 @@ export class FireEscaper {
     this.drawer = drawer;
     this.roomMap = drawer.mapObjects;
 
-    this.maxRowIdx = this.roomMap.length - 1;
-    this.maxColIdx = this.roomMap[0].length - 1;
+    this.maxHeight = this.roomMap.length;
+    this.maxWidth = this.roomMap[0].length;
 
     this.directions = directions;
-
-    this.visited = new Array(this.roomMap.length)
-      .fill(false)
-      .map(() => new Array(this.roomMap[0].length).fill(false));
   }
 
   consoleInteraction(pos: Position, symbol: MapSymbols) {
     console.clear();
-    this.drawer.displayMap(pos, symbol);
+    this.drawer.updateAndDisplayMap(pos, symbol);
     inputReader.wait("Press a button to continue");
   }
 
-  getNextPositions(row: number, col: number): NextPosition[] {
+  getNextPositions(pos: Position): NextPosition[] {
     let nextPositions: NextPosition[] = [];
 
     for (const dir of this.directions) {
       let nextPositionFunc: NextPositionFunc = directionsFunctionMap[dir];
-      nextPositions.push(nextPositionFunc(row, col));
+      nextPositions.push(nextPositionFunc(pos));
     }
 
     return nextPositions;
+  }
+
+  escapeTheRoom(entrance: Position): void {
+    console.clear();
+    this.drawer.displayMap();
+    inputReader.wait("Press a button to continue");
+
+    let nextPositions = this.getNextPositions(entrance);
+
+    if (
+      this.recursionSolver(entrance, nextPositions[0]) ||
+      this.recursionSolver(entrance, nextPositions[1]) ||
+      this.recursionSolver(entrance, nextPositions[2]) ||
+      this.recursionSolver(entrance, nextPositions[3])
+    ) {
+      console.log("You escaped the room.");
+    } else {
+      console.log("You died.");
+    }
   }
 
   recursionSolver(curr_pos: Position, pos_candidate: NextPosition): boolean {
@@ -91,38 +105,38 @@ export class FireEscaper {
 
     this.consoleInteraction(curr_pos, pos_candidate.symbol);
 
-    if (row < 0 || row > this.maxRowIdx || col < 0 || col > this.maxColIdx) {
+    // checks if position is inside room
+    if (!this.drawer.isPositionInRoomLimits(pos_candidate)) {
       return false;
     }
 
     let objectInPosition: MapSymbols = this.roomMap[row][col];
 
-    if (objectInPosition === MapSymbols.Wall) {
-      return false;
-    }
-    if (objectInPosition === MapSymbols.Fire) {
-      return false;
-    }
-    if (this.visited[row][col]) {
+    if (
+      objectInPosition === MapSymbols.Wall ||
+      objectInPosition === MapSymbols.Fire ||
+      objectInPosition === MapSymbols.Visited ||
+      objectInPosition === MapSymbols.Start
+    ) {
       return false;
     }
     if (objectInPosition === MapSymbols.End) {
       return true;
     }
 
-    this.visited[row][col] = true;
-    this.roomMap[row][col] = MapSymbols.Visited;
-    let next_pos = new Position(row, col);
+    this.drawer.markSpotAsVisited(row, col);
 
-    this.consoleInteraction(next_pos, MapSymbols.Cursor);
+    let valid_pos = pos_candidate;
 
-    let nextPositions = this.getNextPositions(row, col);
+    this.consoleInteraction(valid_pos, MapSymbols.Cursor);
+
+    let nextPositions = this.getNextPositions(valid_pos);
 
     return (
-      this.recursionSolver(next_pos, nextPositions[0]) ||
-      this.recursionSolver(next_pos, nextPositions[1]) ||
-      this.recursionSolver(next_pos, nextPositions[2]) ||
-      this.recursionSolver(next_pos, nextPositions[3])
+      this.recursionSolver(valid_pos, nextPositions[0]) ||
+      this.recursionSolver(valid_pos, nextPositions[1]) ||
+      this.recursionSolver(valid_pos, nextPositions[2]) ||
+      this.recursionSolver(valid_pos, nextPositions[3])
     );
   }
 }

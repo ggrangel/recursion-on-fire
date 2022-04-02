@@ -1,6 +1,8 @@
 import * as _ from "underscore";
 import { Position } from "./position";
 
+export type RoomMap = MapSymbols[][];
+
 export enum MapSymbols {
   Wall = "-",
   Fire = "x",
@@ -19,7 +21,7 @@ export class MapDrawer {
   width: number;
   height: number;
   possiblePath: Position[];
-  mapObjects: MapSymbols[][];
+  mapObjects: RoomMap;
 
   constructor(height: number, width: number, possiblePath: Position[]) {
     this.width = width;
@@ -31,8 +33,21 @@ export class MapDrawer {
       .map(() => new Array(this.width).fill(null));
 
     this.setEntranceAndExit();
-    this.setPossiblePath();
+    // this.setPossiblePath();
+    this.setImpossiblePath();
     this.setRandomWallAndFireAndEmpty();
+  }
+
+  isPositionInRoomLimits(pos: Position): boolean {
+    if (
+      pos.row >= 0 &&
+      pos.row < this.height &&
+      pos.col >= 0 &&
+      pos.col < this.width
+    ) {
+      return true;
+    }
+    return false;
   }
 
   setEntranceAndExit(): void {
@@ -49,6 +64,26 @@ export class MapDrawer {
       this.possiblePath.length - 1
     )) {
       this.mapObjects[path.row][path.col] = MapSymbols.Empty;
+    }
+  }
+
+  setImpossiblePath(): void {
+    const exit: Position = this.possiblePath[this.possiblePath.length - 1];
+
+    let exitNeighbors: Position[] = [];
+
+    exitNeighbors.push(new Position(exit.row, exit.col - 1));
+    exitNeighbors.push(new Position(exit.row, exit.col + 1));
+    exitNeighbors.push(new Position(exit.row - 1, exit.col));
+    exitNeighbors.push(new Position(exit.row + 1, exit.col));
+
+    for (const pos of exitNeighbors) {
+      if (!this.isPositionInRoomLimits(pos)) {
+        continue;
+      }
+      if (!this.mapObjects[pos.row][pos.col]) {
+        this.mapObjects[pos.row][pos.col] = MapSymbols.Fire;
+      }
     }
   }
 
@@ -107,7 +142,20 @@ export class MapDrawer {
     }
   }
 
-  displayMap(curr_pos: Position, symbol: MapSymbols): void {
+  markSpotAsVisited(row: number, col: number) {
+    this.mapObjects[row][col] = MapSymbols.Visited;
+  }
+
+  displayMap(map: RoomMap | undefined = undefined) {
+    if (map === undefined) {
+      map = this.mapObjects;
+    }
+    for (const row of map) {
+      console.log(row.join(" "));
+    }
+  }
+
+  updateAndDisplayMap(curr_pos: Position, symbol: MapSymbols): void {
     // deep copy of the map
     let mapCopy = this.mapObjects.map(function (arr) {
       return arr.slice();
@@ -115,8 +163,6 @@ export class MapDrawer {
 
     mapCopy[curr_pos.row][curr_pos.col] = symbol;
 
-    for (const row of mapCopy) {
-      console.log(row.join(" "));
-    }
+    this.displayMap(mapCopy);
   }
 }
