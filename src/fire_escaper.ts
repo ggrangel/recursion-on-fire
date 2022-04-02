@@ -1,6 +1,7 @@
 const inputReader = require("wait-console-input");
-import { Position } from "./position";
-import { MapDrawer, MapSymbols, RoomMap } from "./map_drawer";
+import { isPositionInRoomLimits, Position } from "./position";
+import { MapDisplayer } from "./map_drawer";
+import { MapSymbols, RoomMap } from "./map_creator";
 
 export class NextPosition extends Position {
   symbol: MapSymbols;
@@ -41,24 +42,13 @@ const directionsFunctionMap = {
 };
 
 export class FireEscaper {
-  entrance: Position;
-  drawer: MapDrawer;
+  drawer: MapDisplayer;
   roomMap: RoomMap;
-  maxHeight: number;
-  maxWidth: number;
   directions: DirectionOrder;
 
-  constructor(
-    entrance: Position,
-    drawer: MapDrawer,
-    directions: DirectionOrder
-  ) {
-    this.entrance = entrance;
+  constructor(drawer: MapDisplayer, directions: DirectionOrder) {
     this.drawer = drawer;
-    this.roomMap = drawer.mapObjects;
-
-    this.maxHeight = this.roomMap.length;
-    this.maxWidth = this.roomMap[0].length;
+    this.roomMap = drawer.roomMap;
 
     this.directions = directions;
   }
@@ -69,11 +59,11 @@ export class FireEscaper {
     inputReader.wait("Press a button to continue");
   }
 
-  getNextPositions(pos: Position): NextPosition[] {
-    let nextPositions: NextPosition[] = [];
+  get4Neighbors(pos: Position): NextPosition[] {
+    const nextPositions: NextPosition[] = [];
 
     for (const dir of this.directions) {
-      let nextPositionFunc: NextPositionFunc = directionsFunctionMap[dir];
+      const nextPositionFunc: NextPositionFunc = directionsFunctionMap[dir];
       nextPositions.push(nextPositionFunc(pos));
     }
 
@@ -85,7 +75,7 @@ export class FireEscaper {
     this.drawer.displayMap();
     inputReader.wait("Press a button to continue");
 
-    let nextPositions = this.getNextPositions(entrance);
+    const nextPositions = this.get4Neighbors(entrance);
 
     if (
       this.recursionSolver(entrance, nextPositions[0]) ||
@@ -100,17 +90,16 @@ export class FireEscaper {
   }
 
   recursionSolver(curr_pos: Position, pos_candidate: NextPosition): boolean {
-    let row: number = pos_candidate.row;
-    let col: number = pos_candidate.col;
+    const row: number = pos_candidate.row;
+    const col: number = pos_candidate.col;
 
     this.consoleInteraction(curr_pos, pos_candidate.symbol);
 
-    // checks if position is inside room
-    if (!this.drawer.isPositionInRoomLimits(pos_candidate)) {
+    if (!isPositionInRoomLimits(pos_candidate, this.roomMap)) {
       return false;
     }
 
-    let objectInPosition: MapSymbols = this.roomMap[row][col];
+    const objectInPosition: MapSymbols = this.roomMap[row][col];
 
     if (
       objectInPosition === MapSymbols.Wall ||
@@ -126,11 +115,11 @@ export class FireEscaper {
 
     this.drawer.markSpotAsVisited(row, col);
 
-    let valid_pos = pos_candidate;
+    const valid_pos = pos_candidate;
 
     this.consoleInteraction(valid_pos, MapSymbols.Cursor);
 
-    let nextPositions = this.getNextPositions(valid_pos);
+    const nextPositions = this.get4Neighbors(valid_pos);
 
     return (
       this.recursionSolver(valid_pos, nextPositions[0]) ||

@@ -1,5 +1,5 @@
 import { MapCreator } from "./map_creator";
-import { MapDrawer } from "./map_drawer";
+import { MapDisplayer } from "./map_drawer";
 import { FireEscaper, DirectionOrder } from "./fire_escaper";
 
 function main() {
@@ -8,18 +8,18 @@ function main() {
 
   const creator: MapCreator = new MapCreator(height, width);
 
-  const possiblePath = creator.createValidPath();
+  creator.createMap();
 
-  const drawer = new MapDrawer(height, width, possiblePath);
-
-  let entrance = possiblePath[0];
+  const drawer = new MapDisplayer(creator.roomMap);
 
   // non-efficient ordering
   let directionOrder: DirectionOrder = ["left", "up", "down", "right"];
   // efficient ordering
   // let directionOrder: DirectionOrder = ["down", "right", "up", "left"];
 
-  let escaper = new FireEscaper(entrance, drawer, directionOrder);
+  const entrance = creator.startPos;
+
+  let escaper = new FireEscaper(drawer, directionOrder);
 
   escaper.escapeTheRoom(entrance);
 }

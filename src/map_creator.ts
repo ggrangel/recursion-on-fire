@@ -1,48 +1,123 @@
 import * as _ from "underscore";
-import { Position } from "./position";
+import { isPositionInRoomLimits, Position } from "./position";
+
+export type RoomMap = MapSymbols[][];
+
+export enum MapSymbols {
+  Wall = "-",
+  Fire = "x",
+  Start = "S",
+  End = "E",
+  Empty = " ",
+  UpArrow = "",
+  RightArrow = "",
+  DownArrow = "",
+  LeftArrow = "",
+  Cursor = "o",
+  Visited = "*",
+}
 
 export class MapCreator {
   height: number;
   width: number;
-  startingPos: Position;
-  endingPos: Position;
+  roomMap: RoomMap;
+  startPos: Position;
+  endPos: Position;
 
   constructor(height: number, width: number) {
     this.height = height;
     this.width = width;
 
-    this.startingPos = this.setStartPosition();
-    this.endingPos = this.setEndPosition();
+    this.roomMap = new Array(this.height)
+      .fill(null)
+      .map(() => new Array(this.width).fill(null));
+
+    this.startPos = this.setStartPosition();
+    this.endPos = this.setEndPosition();
   }
 
   setStartPosition(): Position {
-    return new Position(0, 1);
+    const startPosition: Position = new Position(0, 1);
+    this.roomMap[startPosition.row][startPosition.col] = MapSymbols.Start;
+    return startPosition;
   }
 
   setEndPosition(): Position {
-    return new Position(Math.floor(this.height / 2), this.width - 1);
+    const endPos: Position = new Position(
+      Math.floor(this.height / 2),
+      this.width - 1
+    );
+    this.roomMap[endPos.row][endPos.col] = MapSymbols.End;
+    return endPos;
   }
 
-  createValidPath(): Position[] {
-    let path: Position[] = [this.startingPos];
-
+  setValidPath(): void {
     // going down
     for (const row of _.range(1, this.height - 1)) {
-      path.push(new Position(row, 1));
+      this.roomMap[row][1] = MapSymbols.Empty;
     }
 
     // going right
     for (const col of _.range(2, this.width - 1)) {
-      path.push(new Position(this.height - 2, col));
+      this.roomMap[this.height - 2][col] = MapSymbols.Empty;
     }
 
     // going up
-    for (const row of _.range(this.height - 3, this.endingPos.row - 1, -1)) {
-      path.push(new Position(row, this.width - 2));
+    for (const row of _.range(this.height - 3, this.endPos.row - 1, -1)) {
+      this.roomMap[row][this.width - 2] = MapSymbols.Empty;
     }
+  }
 
-    path.push(this.endingPos);
+  setImpossiblePath(): void {
+    const exitNeighbors: Position[] = [];
 
-    return path;
+    exitNeighbors.push(new Position(this.endPos.row, this.endPos.col - 1));
+    exitNeighbors.push(new Position(this.endPos.row, this.endPos.col + 1));
+    exitNeighbors.push(new Position(this.endPos.row - 1, this.endPos.col));
+    exitNeighbors.push(new Position(this.endPos.row + 1, this.endPos.col));
+
+    for (const pos of exitNeighbors) {
+      if (!isPositionInRoomLimits(pos, this.roomMap)) {
+        continue;
+      }
+      if (!this.roomMap[pos.row][pos.col]) {
+        this.roomMap[pos.row][pos.col] = MapSymbols.Fire;
+      }
+    }
+  }
+
+  setWall(): void {
+    // Function not used
+    this.roomMap[0].fill(MapSymbols.Wall);
+    this.roomMap[this.height - 1].fill(MapSymbols.Wall);
+    // TODO: find a way to fill column values
+  }
+
+  setRandomWallAndFireAndEmpty(): void {
+    for (const row of _.range(this.height)) {
+      for (const col of _.range(this.width)) {
+        if (this.roomMap[row][col]) {
+          continue;
+        }
+        if (
+          row === 0 ||
+          col === 0 ||
+          row === this.height - 1 ||
+          col === this.width - 1
+        ) {
+          this.roomMap[row][col] = MapSymbols.Wall;
+        } else if (Math.random() < 0.5) {
+          this.roomMap[row][col] = MapSymbols.Fire;
+        } else {
+          this.roomMap[row][col] = MapSymbols.Empty;
+        }
+      }
+    }
+  }
+
+  createMap() {
+    this.setValidPath();
+    this.setImpossiblePath();
+    this.setRandomWallAndFireAndEmpty();
   }
 }
