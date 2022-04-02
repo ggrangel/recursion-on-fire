@@ -14,8 +14,6 @@ export class NextPosition extends Position {
 
 export type Direction = "left" | "right" | "up" | "down";
 
-export type NextPositionFunc = (pos: Position) => NextPosition;
-
 export type DirectionOrder = [Direction, Direction, Direction, Direction];
 
 function nextPositionLeft(pos: Position): NextPosition {
@@ -33,6 +31,8 @@ function nextPositionDown(pos: Position): NextPosition {
 function nextPositionRight(pos: Position): NextPosition {
   return new NextPosition(pos.row, pos.col + 1, MapSymbols.RightArrow);
 }
+
+type NextPositionFunc = typeof nextPositionUp;
 
 const directionsFunctionMap = {
   left: nextPositionLeft,

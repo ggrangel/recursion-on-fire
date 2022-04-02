@@ -2,11 +2,7 @@ import { MapSymbols, RoomMap } from "./map_creator";
 import { Position } from "./position";
 
 export class MapDisplayer {
-  // roomMap: RoomMap;
-
-  constructor(private roomMap: RoomMap) {
-    // this.roomMap = roomMap;
-  }
+  constructor(private roomMap: RoomMap) {}
 
   markSpotAsVisited(row: number, col: number) {
     this.roomMap[row][col] = MapSymbols.Visited;

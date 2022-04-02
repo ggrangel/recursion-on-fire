@@ -1,8 +1,6 @@
 import * as _ from "underscore";
 import { isPositionInRoomLimits, Position } from "./position";
 
-export type MapSolvable = "solvable" | "impossible";
-
 export type RoomMap = MapSymbols[][];
 
 export enum MapSymbols {
@@ -53,7 +51,7 @@ export class MapCreator {
     return endPos;
   }
 
-  setValidPath(): void {
+  setSolvablePath(): void {
     // going down
     for (const row of _.range(1, this.height - 1)) {
       this.roomMap[row][1] = MapSymbols.Empty;
@@ -70,7 +68,7 @@ export class MapCreator {
     }
   }
 
-  setImpossiblePath(): void {
+  setUnsolvablePath(): void {
     const exitNeighbors: Position[] = [];
 
     exitNeighbors.push(new Position(this.endPos.row, this.endPos.col - 1));
@@ -117,13 +115,12 @@ export class MapCreator {
     }
   }
 
-  createMap(isSolvable: MapSolvable) {
-    if (isSolvable === "solvable") {
-      this.setValidPath();
-    } else {
-      this.setImpossiblePath();
-    }
-
+  createSolvableMap() {
+    this.setSolvablePath();
+    this.setRandomWallAndFireAndEmpty();
+  }
+  createUnSolvableMap() {
+    this.setUnsolvablePath();
     this.setRandomWallAndFireAndEmpty();
   }
 }

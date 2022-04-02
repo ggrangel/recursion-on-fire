@@ -1,21 +1,18 @@
-import { MapCreator, MapSolvable } from "./map_creator";
+import { MapCreator } from "./map_creator";
 import { MapDisplayer } from "./map_drawer";
 import { FireEscaper, DirectionOrder } from "./fire_escaper";
 
 function main() {
   const width: number = 6;
   const height: number = width;
-  let isSolvable: MapSolvable;
-
-  if (Math.random() < 0.5) {
-    isSolvable = "solvable";
-  } else {
-    isSolvable = "impossible";
-  }
 
   const creator: MapCreator = new MapCreator(height, width);
 
-  creator.createMap(isSolvable);
+  if (Math.random() < 0.5) {
+    creator.createSolvableMap();
+  } else {
+    creator.createUnSolvableMap();
+  }
 
   const drawer = new MapDisplayer(creator.roomMap);
 
