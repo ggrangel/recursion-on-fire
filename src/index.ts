@@ -8,20 +8,20 @@ function main() {
 
   const creator: MapCreator = new MapCreator(height, width);
 
-  if (Math.random() < 0.5) {
-    creator.createSolvableMap();
-  } else {
-    creator.createUnSolvableMap();
-  }
+  console.log("t");
 
-  const drawer = new MapDisplayer(creator.roomMap);
+  Math.random() < 0.5
+    ? creator.createSolvableMap()
+    : creator.createUnSolvableMap();
+
+  const drawer = new MapDisplayer(creator.map);
 
   // non-efficient ordering
   let directionOrder: DirectionOrder = ["left", "up", "down", "right"];
   // efficient ordering
   // let directionOrder: DirectionOrder = ["down", "right", "up", "left"];
 
-  let escaper = new FireEscaper(drawer, creator.roomMap, directionOrder);
+  let escaper = new FireEscaper(drawer, creator.map, directionOrder);
 
   escaper.escapeTheRoom(creator.startPos);
 }

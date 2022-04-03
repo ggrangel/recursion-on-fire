@@ -85,8 +85,7 @@ export class FireEscaper {
   }
 
   recursionSolver(curr_pos: Position, pos_candidate: NextPosition): boolean {
-    const row: number = pos_candidate.row;
-    const col: number = pos_candidate.col;
+    const { row, col } = pos_candidate;
 
     this.consoleInteraction(curr_pos, pos_candidate.symbol);
 

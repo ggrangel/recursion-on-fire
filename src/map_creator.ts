@@ -1,7 +1,5 @@
 import * as _ from "underscore";
-import { isPositionInRoomLimits, Position } from "./position";
-
-export type RoomMap = MapSymbols[][];
+import { Room, Position } from "./position";
 
 export enum MapSymbols {
   Wall = "-",
@@ -18,85 +16,70 @@ export enum MapSymbols {
 }
 
 export class MapCreator {
-  height: number;
-  width: number;
-  roomMap: RoomMap;
-  startPos: Position;
-  endPos: Position;
+  room: Room;
 
-  constructor(height: number, width: number) {
-    this.height = height;
-    this.width = width;
-
-    this.roomMap = new Array(this.height)
-      .fill(null)
-      .map(() => new Array(this.width).fill(null));
-
-    this.startPos = this.setStartPosition();
-    this.endPos = this.setEndPosition();
+  constructor(private height: number, private width: number) {
+    this.room = new Room(height, width);
   }
 
-  setStartPosition(): Position {
-    const startPosition: Position = new Position(0, 1);
-    this.roomMap[startPosition.row][startPosition.col] = MapSymbols.Start;
-    return startPosition;
+  setStartPosition(): void {
+    const startPosition: Position = { row: 0, col: 1 };
+    this.room.setMapStart(startPosition);
   }
 
-  setEndPosition(): Position {
-    const endPos: Position = new Position(
-      Math.floor(this.height / 2),
-      this.width - 1
-    );
-    this.roomMap[endPos.row][endPos.col] = MapSymbols.End;
-    return endPos;
+  setEndPosition(): void {
+    const endPosisition: Position = {
+      row: Math.floor(this.height / 2),
+      col: this.width - 1,
+    };
+    this.room.setMapEnd(endPosisition);
   }
 
   setSolvablePath(): void {
     // going down
     for (const row of _.range(1, this.height - 1)) {
-      this.roomMap[row][1] = MapSymbols.Empty;
+      this.room.setSymbolInMap({ row: row, col: 1 }, MapSymbols.Empty);
     }
 
     // going right
     for (const col of _.range(2, this.width - 1)) {
-      this.roomMap[this.height - 2][col] = MapSymbols.Empty;
+      this.room.setSymbolInMap(
+        { row: this.height - 2, col: col },
+        MapSymbols.Empty
+      );
     }
 
     // going up
-    for (const row of _.range(this.height - 3, this.endPos.row - 1, -1)) {
-      this.roomMap[row][this.width - 2] = MapSymbols.Empty;
+    for (const row of _.range(this.height - 3, this.room.mapEnd.row - 1, -1)) {
+      this.room.setSymbolInMap(
+        { row: row, col: this.width - 2 },
+        MapSymbols.Empty
+      );
     }
   }
 
   setUnsolvablePath(): void {
-    const exitNeighbors: Position[] = [];
+    const exitNeighbors: Position[] = this.room.getNeighborsOf(this.room.mapEnd)
 
-    exitNeighbors.push(new Position(this.endPos.row, this.endPos.col - 1));
-    exitNeighbors.push(new Position(this.endPos.row, this.endPos.col + 1));
-    exitNeighbors.push(new Position(this.endPos.row - 1, this.endPos.col));
-    exitNeighbors.push(new Position(this.endPos.row + 1, this.endPos.col));
+    for (pos: Position in exit)
 
-    for (const pos of exitNeighbors) {
-      if (!isPositionInRoomLimits(pos, this.roomMap)) {
-        continue;
-      }
-      if (!this.roomMap[pos.row][pos.col]) {
-        this.roomMap[pos.row][pos.col] = MapSymbols.Fire;
+      if (!this.map[pos.row][pos.col]) {
+        this.map[pos.row][pos.col] = MapSymbols.Fire;
       }
     }
   }
 
   setWall(): void {
     // Function not used
-    this.roomMap[0].fill(MapSymbols.Wall);
-    this.roomMap[this.height - 1].fill(MapSymbols.Wall);
+    this.map[0].fill(MapSymbols.Wall);
+    this.map[this.height - 1].fill(MapSymbols.Wall);
     // TODO: find a way to fill column values
   }
 
   setRandomWallAndFireAndEmpty(): void {
     for (const row of _.range(this.height)) {
       for (const col of _.range(this.width)) {
-        if (this.roomMap[row][col]) {
+        if (this.map[row][col]) {
           continue;
         }
         if (
@@ -105,11 +88,11 @@ export class MapCreator {
           row === this.height - 1 ||
           col === this.width - 1
         ) {
-          this.roomMap[row][col] = MapSymbols.Wall;
+          this.map[row][col] = MapSymbols.Wall;
         } else if (Math.random() < 0.5) {
-          this.roomMap[row][col] = MapSymbols.Fire;
+          this.map[row][col] = MapSymbols.Fire;
         } else {
-          this.roomMap[row][col] = MapSymbols.Empty;
+          this.map[row][col] = MapSymbols.Empty;
         }
       }
     }
