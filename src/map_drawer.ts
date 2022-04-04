@@ -1,7 +1,7 @@
 import { MapSymbols, RoomMap } from "./map_creator";
-import { Position } from "./position";
+import  Position  from "./position";
 
-export class MapDisplayer {
+class MapDisplayer {
   constructor(private roomMap: RoomMap) {}
 
   markSpotAsVisited(row: number, col: number) {
@@ -28,3 +28,5 @@ export class MapDisplayer {
     this.displayMap(mapCopy);
   }
 }
+
+export default MapDisplayer;

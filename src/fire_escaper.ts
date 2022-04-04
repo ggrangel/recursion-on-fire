@@ -1,6 +1,6 @@
 const inputReader = require("wait-console-input");
-import { isPositionInRoomLimits, Position } from "./position";
-import { MapDisplayer } from "./map_drawer";
+import Position from "./position";
+import MapDisplayer from "./map_drawer";
 import { MapSymbols, RoomMap } from "./map_creator";
 
 export class NextPosition extends Position {
@@ -85,14 +85,13 @@ export class FireEscaper {
   }
 
   recursionSolver(curr_pos: Position, pos_candidate: NextPosition): boolean {
-    const row: number = pos_candidate.row;
-    const col: number = pos_candidate.col;
-
     this.consoleInteraction(curr_pos, pos_candidate.symbol);
 
-    if (!isPositionInRoomLimits(pos_candidate, this.roomMap)) {
+    if (!pos_candidate.isPositionInRoomLimits(this.roomMap)) {
       return false;
     }
+
+    const { row, col } = pos_candidate;
 
     const objectInPosition: MapSymbols = this.roomMap[row][col];
 

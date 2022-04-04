@@ -1,5 +1,5 @@
 import { MapCreator } from "./map_creator";
-import { MapDisplayer } from "./map_drawer";
+import  MapDisplayer  from "./map_drawer";
 import { FireEscaper, DirectionOrder } from "./fire_escaper";
 
 function main() {

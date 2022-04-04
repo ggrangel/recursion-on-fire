@@ -1,5 +1,5 @@
 import * as _ from "underscore";
-import { isPositionInRoomLimits, Position } from "./position";
+import Position from "./position";
 
 export type RoomMap = MapSymbols[][];
 
@@ -77,7 +77,7 @@ export class MapCreator {
     exitNeighbors.push(new Position(this.endPos.row + 1, this.endPos.col));
 
     for (const pos of exitNeighbors) {
-      if (!isPositionInRoomLimits(pos, this.roomMap)) {
+      if (!pos.isPositionInRoomLimits(this.roomMap)) {
         continue;
       }
       if (!this.roomMap[pos.row][pos.col]) {
